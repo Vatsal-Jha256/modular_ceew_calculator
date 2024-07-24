@@ -1,6 +1,6 @@
 from helper import calculate_billing, calculate_month_key
 
-def calculate_solar_grid_costs(df, hourly_load_demand, extended_outage_status,  solar_system_size, n, dg_cost=30, 
+def calculate_solar_grid_dg_costs(df, hourly_load_demand, extended_outage_status,  solar_system_size, n, dg_cost=30, 
                                num_years=25, initial_solar_module_cost=50000, normal_tariff=5, demand_charge=300,
                                increment_on_peak_tariff=0.2, decrement_on_non_peak_tariff=0.2, feed_in_tariff=0,
                                vos=50, grid_carbon_factor=0.716, carbon_cost=0, solar_degradation_rate_yearly=0.01,
