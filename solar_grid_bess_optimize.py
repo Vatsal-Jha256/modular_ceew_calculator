@@ -1,7 +1,7 @@
 from helper import calculate_billing, calculate_month_key
 
 #Optimization of the battery size
-def bess_optimize(df, overall_max_load, extended_outage_stat,hourly_load_demand, solar_system_size,normal_tariff,num_hours_in_year
+def optimize_solar_grid_bess_costs(df, overall_max_load, extended_outage_stat,hourly_load_demand, solar_system_size,normal_tariff,num_hours_in_year
     ,solar_degradation_rate_yearly=0.01, battery_degradation_rate_yearly=0.03, dg_cost=30, demand_escalation_rate_yearly=0.02, 
     om_cost_escalation_rate=0.03, tariff_escalation_rate_yearly=0.01, fit_tariff_escalation_rate_yearly=0.00, 
     demand_charge_escalation_rate_yearly=0.01, dg_escalation_rate_yearly=0.04, vos_escalation_rate_yearly=0.04, 
