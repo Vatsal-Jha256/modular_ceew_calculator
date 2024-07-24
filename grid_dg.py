@@ -1,4 +1,4 @@
-def grid_dg_calc( num_hours_in_year, hourly_load_demand, extended_outage_status, normal_tariff, increment_on_peak_tariff= 0.2, decrement_on_non_peak_tariff=0.2, tariff_escalation_rate_yearly= 0.01, feed_in_tariff= 0.0,  dg_cost=30, num_years=25,vos_escalation_rate_yearly= 0.04, dg_escalation_rate_yearly = 0.04, 
+def calculate_grid_dg_costs( num_hours_in_year, hourly_load_demand, extended_outage_status, normal_tariff, increment_on_peak_tariff= 0.2, decrement_on_non_peak_tariff=0.2, tariff_escalation_rate_yearly= 0.01, feed_in_tariff= 0.0,  dg_cost=30, num_years=25,vos_escalation_rate_yearly= 0.04, dg_escalation_rate_yearly = 0.04, 
             demand_escalation_rate_yearly= 0.01,vos=50, dg_cost=30,discount_factor=0.08, demand_charge=300, 
                  grid_carbon_factor=0.716, dg_carbon_factor=0.76, carbon_cost=0):
     
