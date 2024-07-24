@@ -1,4 +1,4 @@
-def calculate_costs(
+def calculate_solar_grid_bess_costs(
     bpc_wo, df, hourly_load_demand, extended_outage_status, initial_solar_module_cost, initial_battery_cost, 
     solar_system_size, battery_costs, battery_replacement_schedule, charge_from_grid, discharge_battery, 
     metering_option, charge, initial_bpc=None, dg_cost=30,
