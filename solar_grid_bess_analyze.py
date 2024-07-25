@@ -1,16 +1,27 @@
-def calculate_solar_grid_bess_costs(
-    bpc_wo, df, hourly_load_demand, extended_outage_status, initial_solar_module_cost, initial_battery_cost, 
-    solar_system_size, battery_costs, battery_replacement_schedule, charge_from_grid, discharge_battery, 
-    metering_option, charge, initial_bpc=None, dg_cost=30,
-    solar_degradation_rate_yearly=0.01, battery_degradation_rate_yearly=0.03, demand_escalation_rate_yearly=0.02, 
-    om_cost_escalation_rate=0.03, tariff_escalation_rate_yearly=0.01, fit_tariff_escalation_rate_yearly=0.00, 
-    demand_charge_escalation_rate_yearly=0.01, dg_escalation_rate_yearly=0.04, vos_escalation_rate_yearly=0.04, 
-    discount_factor=0.08, num_years=25, hos=4, eff=0.95, min_charge=0.2, demand_charge=300, 
-    increment_on_peak_tariff=0.2, decrement_on_non_peak_tariff=0.2, feed_in_tariff=0, vos=50, 
-    grid_carbon_factor=0.716, dg_carbon_factor=0.76, carbon_cost=0
-):
-    if initial_bpc is None:
-        initial_bpc = bpc_wo
+from helper import *
+import calendar
+import pandas as pd
+import numpy as np
+import numpy_financial as npf
+# import matplotlib.pyplot as plt
+# import matplotlib.patches as mpatches
+import streamlit as st
+# import plotly.express as px
+import plotly.graph_objects as go
+
+
+def calculate_solar_grid_bess_costs(n,normal_tariff,  option, extended_outage_status, df, solar_generation,
+ vos, feed_in_tariff, hourly_load_demand, profile_choice, 
+ monthly_energy_consumption, solar_system_size, charge_from_grid, 
+ discharge_battery, hos, eff, min_charge, demand_charge, increment_on_peak_tariff,
+  decrement_on_non_peak_tariff, initial_solar_module_cost, 
+  initial_battery_cost, dg_cost, metering_option, metering_regime, num_years, discount_factor, grid_carbon_factor, 
+  dg_carbon_factor, carbon_cost, solar_degradation_rate_yearly, battery_degradation_rate_yearly, demand_escalation_rate_yearly, 
+  om_cost_escalation_rate, tariff_escalation_rate_yearly, fit_tariff_escalation_rate_yearly,
+   demand_charge_escalation_rate_yearly, dg_escalation_rate_yearly, vos_escalation_rate_yearly, 
+num_hours_in_year, charge, battery_replacement_schedule, battery_costs, bpc_wo):
+    
+    initial_bpc = bpc_wo
 
     yearly_total_demands = []
     yearly_electricity_costs = []
@@ -172,7 +183,7 @@ def calculate_solar_grid_bess_costs(
             
             if metering_option == 1:
                 # Example usage to populate monthly_ngd_peak based on some data
-                month_key = calculate_month_key(index)
+                month_key = calculate_month_key(index, n)
                 if n==1:               
                     if 16 <= hour_of_day < 22:
                         monthly_ngd_peak[month_key] += ngd     
@@ -342,7 +353,50 @@ def calculate_solar_grid_bess_costs(
     total_gb=sum(yearly_total_gb)
     total_ngd=sum(yearly_total_ngd)
 
-     
+    st.metric(label="Total cost for solar+Grid+BESS system", value=format_indian_currency(total_c))
+    st.metric(label="LCOE for solar+Grid+BESS system", value=f"{total_c/total_demand:.2f} INR/kWh")
+    #Cashflow Table for Grid+Solar+BESS system
+
+
+    # Initialize numpy arrays for yearly costs
+    total_fixed_component_costc = np.zeros(num_years)
+    total_electricity_costc = np.zeros(num_years)
+    total_unmet_demand_costc = np.zeros(num_years)
+    total_electricity_costc_nm= np.zeros(num_years)
+    total_om_costc = np.zeros(num_years)
+    total_coc = np.zeros(num_years)
+    total_capexc = np.zeros(num_years)
+
+    # Assign CAPEX cost for the first year
+    total_capexc[0] = Capx_cost
+
+    # Calculate the yearly costs
+    for year in range(num_years):
+        total_fixed_component_costc[year] = max_values_per_year[year]['max_grid_load1'] * 12 * demand_charge * ((1 + demand_escalation_rate_yearly) / (1 + discount_factor) ** year)
+        if metering_option==1:
+            total_electricity_costc[year]=yearly_electricity_costs_nm[year]
+        if metering_option==2:
+            total_electricity_costc[year] = yearly_electricity_costs[year] 
+        total_unmet_demand_costc[year] = yearly_unmet_demand_costs[year]
+        total_om_costc[year] = yearly_om_costs[year]
+        total_coc[year] = total_fixed_component_costc[year] + total_electricity_costc[year] + total_om_costc[year] + total_unmet_demand_costc[year] + total_capexc[year]
+
+    # Print the total costs for verification
+    #print("Fixed Cost DG Cost per year: ", total_fixed_component_costc)
+    #print("Variable Electricity Bill DG per year: ", total_electricity_costc)
+    #print("DG Costs per year: ", total_unmet_demand_costc)
+    #print("Total O&M Costs per year: ", total_om_costc)
+    #print("CAPEX Cost per year: ", total_capexc)
+    #print("Total Costs per year: ", total_coc)
+
+    cashflow_table = np.array([total_fixed_component_costc, total_electricity_costc,total_unmet_demand_costc, total_om_costc, total_capexc, total_coc]).T
+
+    # Print the cashflow table
+    #print("\nCashflow Table Array:")
+    #print("Year | Fixed Cost | Variable Electricity Bill|  | Unmet Demand Costs | O&M Costs | CAPEX | Total Costs")
+    #for year in range(num_years):
+    # print(f"{year + 1}    | {total_fixed_component_costc[year]:.2f}        | {total_electricity_costc[year]:.2f}                 | {total_unmet_demand_costc[year]:.2f}     | {total_om_costc[year]:.2f}   | {total_capexc[year]:.2f}   | {total_coc[year]:.2f} ")
+    
     #print(f"Total fixed component cost of electricity for solar+Grid+BESS system: {format_indian_currency(total_fixed_component_cost)}")
     #print(f"Total variable component cost of electricity solar+Grid+BESS system: {format_indian_currency(total_electricity_cost)}")
     #print(f"Total unmet demand cost for solar+Grid+BESS system: {format_indian_currency(total_unmet_demand_cost )}")
@@ -351,10 +405,24 @@ def calculate_solar_grid_bess_costs(
     #print(f"Total cost for solar+Grid+BESS system: {format_indian_currency(total_c)}")
     #print(f"LCOE for solar+Grid+BESS system: {total_c/total_demand:.2f} INR/kWh")
     return {
-        'yearly_total_demands': yearly_total_demands, 'yearly_electricity_costs': yearly_electricity_costs,
-        'yearly_electricity_costs_nm': yearly_electricity_costs_nm, 'yearly_unmet_demand_costs': yearly_unmet_demand_costs,
-        'yearly_om_costs': yearly_om_costs, 'yearly_total_sl': yearly_total_sl, 'yearly_total_bl': yearly_total_bl,
-        'yearly_total_gl': yearly_total_gl, 'yearly_total_sb': yearly_total_sb, 'yearly_total_sg': yearly_total_sg,
-        'yearly_total_gb': yearly_total_gb, 'yearly_total_d': yearly_total_d, 'yearly_total_x': yearly_total_x,
-        'yearly_total_ngd': yearly_total_ngd, 'yearly_emis': yearly_emis, 'calculated_values': calculated_values
+        'fixed_component_cost':total_fixed_component_cost,
+        'variable_component_cost':total_electricity_cost,
+        'unmet_demand_cost':total_unmet_demand_cost,
+        'capx_cost':Capx_cost,
+        'total_om_cost':total_om_cost,
+        'total_cost':total_c,
+        'lcoe':total_c/total_demand,
+        'total_sl':total_sl,
+        'total_bl':total_bl,
+        'total_gl':total_gl,
+        'total_sb':total_sb,
+        'total_sg':total_sg,
+        'total_d':total_d,
+        'total_x':total_x,
+        'total_gb':total_gb,
+        'total_ngd':total_ngd,
+        'total_demand':total_demand,
+        'cashflow_table':cashflow_table,
+        'total_coc':total_coc,
+        'total_emi':total_emi
     }

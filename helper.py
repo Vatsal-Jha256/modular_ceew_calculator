@@ -1,3 +1,14 @@
+import streamlit as st
+import calendar
+import pandas as pd
+import numpy as np
+import numpy_financial as npf
+# import matplotlib.pyplot as plt
+# import matplotlib.patches as mpatches
+import streamlit as st
+# import plotly.express as px
+import plotly.graph_objects as go
+
 # Helper function to convert time in "HH:MM A.M./P.M." format to slot-based format
 def time_to_slot(time_str, n):
     time_parts = time_str.strip().split()
@@ -184,7 +195,7 @@ def generate_outage_status(outage_schedule, months, n):
     
     return yearly_outage_status
 
-def calculate_month_key(index):
+def calculate_month_key(index, n):
     if 0 <= index <= (743 *n +(n-1)):
         return 1  # January
     elif (743 *n +(n-1)) < index <= (1415 * n +(n-1)):

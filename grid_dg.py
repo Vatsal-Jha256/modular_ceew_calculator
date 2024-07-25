@@ -1,6 +1,24 @@
-def calculate_grid_dg_costs( num_hours_in_year, hourly_load_demand, extended_outage_status, normal_tariff, increment_on_peak_tariff= 0.2, decrement_on_non_peak_tariff=0.2, tariff_escalation_rate_yearly= 0.01, feed_in_tariff= 0.0,  dg_cost=30, num_years=25,vos_escalation_rate_yearly= 0.04, dg_escalation_rate_yearly = 0.04, 
-            demand_escalation_rate_yearly= 0.01,vos=50, dg_cost=30,discount_factor=0.08, demand_charge=300, 
-                 grid_carbon_factor=0.716, dg_carbon_factor=0.76, carbon_cost=0):
+from helper import *
+import calendar
+import pandas as pd
+import numpy as np
+import numpy_financial as npf
+# import matplotlib.pyplot as plt
+# import matplotlib.patches as mpatches
+import streamlit as st
+# import plotly.express as px
+import plotly.graph_objects as go
+
+def calculate_grid_dg_costs(n,normal_tariff,  extended_outage_status, df, solar_generation,
+ vos, feed_in_tariff, hourly_load_demand, profile_choice, 
+ monthly_energy_consumption, solar_system_size, charge_from_grid, 
+ discharge_battery, hos, eff, min_charge, demand_charge, increment_on_peak_tariff,
+  decrement_on_non_peak_tariff,  initial_solar_module_cost, 
+  initial_battery_cost, dg_cost, metering_option, metering_regime, num_years, discount_factor, grid_carbon_factor, 
+  dg_carbon_factor, carbon_cost, solar_degradation_rate_yearly, battery_degradation_rate_yearly, demand_escalation_rate_yearly, 
+  om_cost_escalation_rate, tariff_escalation_rate_yearly, fit_tariff_escalation_rate_yearly,
+   demand_charge_escalation_rate_yearly, dg_escalation_rate_yearly, vos_escalation_rate_yearly, 
+num_hours_in_year, charge, battery_replacement_schedule, battery_costs):
     
     calculated_values = []
     max_values_per_year = []
@@ -137,10 +155,49 @@ def calculate_grid_dg_costs( num_hours_in_year, hourly_load_demand, extended_out
 
     grid_dg_lcoe = total_cost_dg_grid / total_demand
 
+    st.metric(label="Total cost for Grid+DG system", value=format_indian_currency(total_cost_dg_grid))
+    st.metric(label="LCOE for Grid+DG system", value=f"{grid_dg_lcoe:.2f} INR/kWh")
+
+    #Cashflow Table for Grid+DG system
+
+    fixed_cost_dg_costs = np.zeros(num_years)
+    variable_electricity_bills_dg = np.zeros(num_years)
+    dg_costs = np.zeros(num_years)
+    total_costs = np.zeros(num_years)
+
+
+    # Calculate the yearly costs
+    for year in range(num_years):
+        fixed_cost_dg_costs[year] = max_values_per_year[year]['max_grid_load_dg1'] * 12 * demand_charge * ((1 + demand_escalation_rate_yearly) / (1 + discount_factor) ** year)
+        variable_electricity_bills_dg[year] = yearly_electricity_variable_bills_dg[year]
+        dg_costs[year] = yearly_dg_costs[year]
+        total_costs[year] = fixed_cost_dg_costs[year] + variable_electricity_bills_dg[year] + dg_costs[year]
+        
+    total_cost_all_components = np.sum(total_costs)
+
+    # Print the total costs for verification
+    #print("Fixed Cost DG Cost per year: ", fixed_cost_dg_costs)
+    #print("Variable Electricity Bill DG per year: ", variable_electricity_bills_dg)
+    #print("DG Costs per year: ", dg_costs)
+    #print("Total Costs per year: ", total_costs)
+
+    cashflow_table = np.array([fixed_cost_dg_costs, variable_electricity_bills_dg, dg_costs, total_costs]).T
+
+    # Print the cashflow table
+    #print("\nCashflow Table Array:")
+    #print("Year | Fixed Cost DG | Variable Electricity Bill DG | DG Costs | Total Costs")
+    #for year in range(num_years):
+    #    print(f"{year + 1}    | {fixed_cost_dg_costs[year]:.2f}        | {variable_electricity_bills_dg[year]:.2f}                 | {dg_costs[year]:.2f}     | {total_costs[year]:.2f}")
+
+
     return {
         'fixed_cost_dg_cost': fixed_cost_dg_cost,
         'total_electricity_variable_bill_dg': total_electricity_variable_bill_dg,
         'total_yearly_dg_costs': total_yearly_dg_costs,
         'total_cost_dg_grid': total_cost_dg_grid,
-        'grid_dg_lcoe': grid_dg_lcoe
+        'grid_dg_lcoe': grid_dg_lcoe,
+        'cashflow_table':cashflow_table,
+        'total_costs':total_costs,
+        'total_dg_emi':total_dg_emi,
+        'total_dg_emi_cost':total_dg_emi_cost
     }

@@ -1,14 +1,25 @@
-from helper import calculate_billing, calculate_month_key
+from helper import *
+import calendar
+import pandas as pd
+import numpy as np
+import numpy_financial as npf
+# import matplotlib.pyplot as plt
+# import matplotlib.patches as mpatches
+import streamlit as st
+# import plotly.express as px
+import plotly.graph_objects as go
 
-def calculate_solar_grid_dg_costs(df, hourly_load_demand, extended_outage_status,  solar_system_size, n, dg_cost=30, 
-                               num_years=25, initial_solar_module_cost=50000, normal_tariff=5, demand_charge=300,
-                               increment_on_peak_tariff=0.2, decrement_on_non_peak_tariff=0.2, feed_in_tariff=0,
-                               vos=50, grid_carbon_factor=0.716, carbon_cost=0, solar_degradation_rate_yearly=0.01,
-                               battery_degradation_rate_yearly=0.03, demand_escalation_rate_yearly=0.02,
-                               om_cost_escalation_rate=0.03, tariff_escalation_rate_yearly=0.01,
-                               fit_tariff_escalation_rate_yearly=0.00, demand_charge_escalation_rate_yearly=0.01,
-                               dg_escalation_rate_yearly=0.04, vos_escalation_rate_yearly=0.04, discount_factor=0.08,
-                               num_hours_in_year=8760, metering_option=1):
+
+def calculate_solar_grid_dg_costs(n,normal_tariff,  extended_outage_status, df, solar_generation,
+ vos, feed_in_tariff, hourly_load_demand, profile_choice, 
+ monthly_energy_consumption, solar_system_size, charge_from_grid, 
+ discharge_battery, hos, eff, min_charge, demand_charge, increment_on_peak_tariff,
+  decrement_on_non_peak_tariff, initial_solar_module_cost, 
+  initial_battery_cost, dg_cost, metering_option, metering_regime, num_years, discount_factor, grid_carbon_factor, 
+  dg_carbon_factor, carbon_cost, solar_degradation_rate_yearly, battery_degradation_rate_yearly, demand_escalation_rate_yearly, 
+  om_cost_escalation_rate, tariff_escalation_rate_yearly, fit_tariff_escalation_rate_yearly,
+   demand_charge_escalation_rate_yearly, dg_escalation_rate_yearly, vos_escalation_rate_yearly, 
+num_hours_in_year, charge, battery_replacement_schedule, battery_costs):
 
     #Calculation of power flow for solar+Grid+DG scenario
     max_values_per_year = []
@@ -140,7 +151,7 @@ def calculate_solar_grid_dg_costs(df, hourly_load_demand, extended_outage_status
             
             if metering_option == 1:
                 # Example usage to populate monthly_ngd_peak based on some data
-                month_key = calculate_month_key(index)
+                month_key = calculate_month_key(index, n)
                 if n==1:
                     if 16 <= hour_of_day < 22:
                         monthly_ngd_peak[month_key] += ngd_sdg
