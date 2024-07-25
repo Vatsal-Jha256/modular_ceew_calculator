@@ -28,8 +28,10 @@ num_hours_in_year, charge, battery_replacement_schedule, battery_costs):
     yearly_unmet_demand_costs_sg = []
     yearly_sg_grid_emis = []
     overall_max_load = 0
+    yearly_total_demands = []
 
     for year in range(num_years):
+        yearly_demand=0
         yearly_unmet_demand_cost_sg = 0
         yearly_cost_sg = 0
         yearly_cost_sg_nm = 0
@@ -63,7 +65,9 @@ num_hours_in_year, charge, battery_replacement_schedule, battery_costs):
                 l = calculated_values[prev_index]['load_demand'] * (1 + demand_escalation_rate_yearly)
 
             o = extended_outage_status[current_hour]
-
+            demand=l/n
+            yearly_demand+=demand
+            
             l_o = l * o
 
             if n == 1:
@@ -180,7 +184,7 @@ num_hours_in_year, charge, battery_replacement_schedule, battery_costs):
             'max_grid_load_sg1': max_gd_sg1,
             'max_demand_load': max_load
         })
-
+        yearly_total_demands.append(yearly_demand*(1/(1+discount_factor)**year))
         yearly_electricity_costs_sg.append(yearly_cost_sg * (1 / (1 + discount_factor) ** year))
         yearly_electricity_costs_sg_nm.append(yearly_cost_sg_nm * (1 / (1 + discount_factor) ** year))
         yearly_unmet_demand_costs_sg.append(yearly_unmet_demand_cost_sg * (1 / (1 + discount_factor) ** year))
@@ -196,7 +200,6 @@ num_hours_in_year, charge, battery_replacement_schedule, battery_costs):
     total_unmet_demand_cost_sg = sum(yearly_unmet_demand_costs_sg)
     total_sg_emi = sum(yearly_sg_grid_emis)
     total_sg_emi_cost = total_sg_emi * carbon_cost
-    total_demand = sum([sum(y['load_demand'] for y in calculated_values if y['Year'] == year + 1) for year in range(num_years)])
 
     solar_module_cost = solar_system_size * initial_solar_module_cost
     initial_om_cost_sg = 0.01 * solar_module_cost
@@ -207,6 +210,7 @@ num_hours_in_year, charge, battery_replacement_schedule, battery_costs):
         else:
             yearly_om_cost_sg = initial_om_cost_sg * ((1 + om_cost_escalation_rate) ** year)
         yearly_om_costs_sg.append(yearly_om_cost_sg * (1 / (1 + discount_factor) ** year))
+    total_demand=sum(yearly_total_demands)
 
     total_om_cost_sg = sum(yearly_om_costs_sg)
     total_cost_solar_grid = fixed_cost_dg_cost + total_electricity_cost_sg + total_unmet_demand_cost_sg + solar_module_cost + total_om_cost_sg + total_sg_emi_cost
