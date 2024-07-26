@@ -71,7 +71,7 @@ num_hours_in_year, charge, battery_replacement_schedule, battery_costs, bpc_wo):
         current_normal_tariff = float(normal_tariff) * ((1 + float(tariff_escalation_rate_yearly)) ** year)
         current_peak_tariff = peak_tariff * ((1 + float(tariff_escalation_rate_yearly)) ** year)
         current_non_peak_tariff = non_peak_tariff * ((1 + float(tariff_escalation_rate_yearly)) ** year)
-        current_feed_in_tariff = float(feed_in_tariff) * ((1 + float(tariff_escalation_rate_yearly)) ** year)
+        current_feed_in_tariff = float(feed_in_tariff) * ((1 + float(fit_tariff_escalation_rate_yearly)) ** year)
         current_vos = float(vos) * ((1 + float(vos_escalation_rate_yearly)) ** year)
         current_dg_cost = float(dg_cost) * ((1 + float(dg_escalation_rate_yearly)) ** year)
         
