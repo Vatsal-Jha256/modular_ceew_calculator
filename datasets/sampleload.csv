@@ -1,4 +1,5 @@
-"sample_load(8740 data points if hourly, 17520 if half hourly, 35040 if quarterly- Excluding headers)"
+"Replace the existing values and enter your load demand data  in kW unit.    
+Note: -Enter 8760 data points for hourly, 17520 for 30 min interval, 35040 for 15 min interval- Excluding headers                                                 "
 50
 50
 50

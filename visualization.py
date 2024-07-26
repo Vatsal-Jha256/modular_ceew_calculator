@@ -107,7 +107,5 @@ def graphs(n, total_sl, total_bl, total_gl, total_x, total_sb,
     with col3:
         st.plotly_chart(fig3, use_container_width=True)
     with col4:
-        st.plotly_chart(fig4, use_container_width=True)
-
-    # Third row: Waterfall chart for total cost of ownership in terms of LCOE
-    st.plotly_chart(fig5, use_container_width=True)
+        st.plotly_chart(fig5, use_container_width=True)
+    
